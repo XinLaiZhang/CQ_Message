@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * 用于管理任务清单
@@ -36,7 +37,6 @@ public class MissionList
 	public static final String M_CLASS = "M_Class"; // 任务类型
 	public static final String M_TITLE = "M_Title"; // 任务标题
 	public static final String M_ID = "M_ID"; // 任务ID
-
 	// 任务清单
 	private ArrayList<Map<String, String>> MissionCountListBefore = new ArrayList<Map<String, String>>();// 未开始任务
 	private ArrayList<Map<String, String>> MissionCountListOn = new ArrayList<Map<String, String>>(); // 进行中任务
@@ -73,10 +73,15 @@ public class MissionList
 	public MissionList() throws SQLException
 	{
 		super();
-		System.out.println("[MissionList]:开始读取任务数据....");
+		println("[MissionList]:开始读取任务数据....");
 		getData();
-		System.out.println("[MissionList]:注册时间戳....");
 		timestamp = new Date().getTime();
+		println("[MissionList]:注册时间戳:" + timestamp);
+	}
+
+	private void println(String msg)
+	{
+		MsgManage.println(msg);
 	}
 
 	/**
@@ -86,7 +91,7 @@ public class MissionList
 	 */
 	public long getTimestamp()
 	{
-		System.out.println("[MissionList]:获取时间戳....");
+		println("[MissionList:getTimestamp]:获取时间戳:" + timestamp);
 		return timestamp;
 	}
 
@@ -103,10 +108,11 @@ public class MissionList
 		String sql = "select * from MissionCountList where M_Status = 0 or M_Status = 1 or M_StartTime > ";
 		Statement state = conn.createStatement();
 		ResultSet resultSet = state.executeQuery(sql + new Date().getTime() + " order by M_StartTime");
-		System.out.println("[MissionList]:获取统计类任务....");
+		println("[MissionList:getData]:获取统计类任务" + System.lineSeparator() + "执行" + sql + new Date().getTime()
+				+ " order by M_StartTime");
 		while (resultSet.next())
 		{
-			// System.out.println(resultSet.get);
+			// println(resultSet.get);
 			Map<String, String> map = new HashMap<String, String>();
 			map.put(M_ID, resultSet.getString(M_ID).trim());
 			map.put(M_TITLE, resultSet.getString(M_TITLE).trim());
@@ -127,11 +133,15 @@ public class MissionList
 			map.put(M_GROUPNUM, resultSet.getString(M_GROUPNUM));
 			map.put(M_TEXT, resultSet.getString(M_TEXT));
 			if (Integer.parseInt(map.get(M_STATUS)) == MissionList.M_STATUS_MISSION_BEFORE)
-				MissionCountListBefore.add(map);
-			else
 			{
+				println("[MissionList:getData]:" + map + "添加至MissionCountListBefore");
+				MissionCountListBefore.add(map);
+			} else
+			{
+				println("[MissionList:getData]:" + map + "添加至MissionCountListOn");
 				MissionCountListOn.add(map);
 				// 获取名单
+				println("[MissionList:getData]:获取名单" + map.get(M_ID));
 				personList.put(map.get(M_ID), new PersonList(map.get(M_LIST)));
 			}
 		}
@@ -139,7 +149,8 @@ public class MissionList
 		sql = "select * from MissionRemindList where M_Status = 0 or M_StartTime > ";
 		JDBCMysqlTools.release(resultSet);
 		resultSet = state.executeQuery(sql + new Date().getTime() + " order by M_StartTime");
-		System.out.println("[MissionList]:获取提醒类任务....");
+		println("[MissionList:getData]:获取提醒类任务" + System.lineSeparator() + "执行" + sql + new Date().getTime()
+				+ " order by M_StartTime");
 		while (resultSet.next())
 		{
 			Map<String, String> map = new HashMap<String, String>();
@@ -155,6 +166,7 @@ public class MissionList
 			map.put(M_EVERY_NUM, resultSet.getString(M_EVERY_NUM));
 			map.put(M_I, resultSet.getString(M_I));
 			map.put(M_INTERVAL, resultSet.getString(M_INTERVAL));
+			println("[MissionList:getData]:" + map + "添加至MissionRemindListBefore");
 			MissionRemindListBefore.add(map);
 		}
 		JDBCMysqlTools.release(resultSet, state, conn);
@@ -162,37 +174,37 @@ public class MissionList
 
 	public ArrayList<Map<String, String>> getMissionCountListBefore()
 	{
-		System.out.println("[MissionList]:获取MissionCountListBefore....");
+		println("[MissionList:getMissionCountListBefore]:获取MissionCountListBefore");
 		return MissionCountListBefore;
 	}
 
 	public ArrayList<Map<String, String>> getMissionCountListOn()
 	{
-		System.out.println("[MissionList]:获取MissionCountListOn....");
+		println("[MissionList:MissionCountListOn]:获取MissionCountListOn");
 		return MissionCountListOn;
 	}
 
 	public ArrayList<Map<String, String>> getMissionCountListOther()
 	{
-		System.out.println("[MissionList]:获取MissionCountListOther....");
+		println("[MissionList:getMissionCountListOther]:获取MissionCountListOther");
 		return MissionCountListOther;
 	}
 
 	public Map<String, PersonList> getPersonList()
 	{
-		System.out.println("[MissionList]:获取PersonList....");
+		println("[MissionList:getPersonList]:获取PersonList");
 		return personList;
 	}
 
 	public ArrayList<Map<String, String>> getMissionRemindListBefore()
 	{
-		System.out.println("[MissionList]:获取MissionRemindListBefore....");
+		println("[MissionList:getMissionRemindListBefore]:获取MissionRemindListBefore");
 		return MissionRemindListBefore;
 	}
 
 	public ArrayList<Map<String, String>> getMissionRemindListFinish()
 	{
-		System.out.println("[MissionList]:获取MissionRemindListFinish....");
+		println("[MissionList:getMissionRemindListFinish]:获取MissionRemindListFinish");
 		return MissionRemindListFinish;
 	}
 
@@ -204,28 +216,30 @@ public class MissionList
 	 */
 	public boolean saveMission() throws SQLException
 	{
-		System.out.println("[MissionList]:可持久化存储任务列表....");
+		println("[MissionList:saveMission]:可持久化存储任务列表");
 		Connection conn = JDBCMysqlTools.getConnection();
 		// 开启事务
 		conn.setAutoCommit(false);
 		Statement state = conn.createStatement();
 		String sql;
-		System.out.println("[MissionList]:开始存储MissionCountListOn....");
+		println("[MissionList:saveMission]:开始存储MissionCountListOn");
 		for (Map<String, String> map : MissionCountListOn)
 		{
 			sql = "update MissionList set " + MissionList.M_STATUS + "=\'" + map.get(MissionList.M_STATUS)
 					+ "\' where M_ID=" + map.get(M_ID);
-			//System.out.println(sql);
+			// println(sql);
 			state.addBatch(sql);
+			println("[MissionList:saveMission]:添加" + sql);
 			personList.get(map.get(M_ID)).saveList(state);
 		}
-		System.out.println("[MissionList]:开始存储MissionCountListOther....");
+		println("[MissionList:saveMission]:开始存储MissionCountListOther");
 		for (Map<String, String> map : MissionCountListOther)
 		{
 			sql = "update MissionList set " + MissionList.M_STATUS + "=\'" + map.get(MissionList.M_STATUS)
 					+ "\' where M_ID=" + map.get(M_ID);
-			//System.out.println(sql);
+			// println(sql);
 			state.addBatch(sql);
+			println("[MissionList:saveMission]:添加" + sql);
 			PersonList list = personList.get(M_ID);
 			if (list != null)
 			{
@@ -234,12 +248,13 @@ public class MissionList
 				personList.remove(M_ID);
 			}
 		}
-		System.out.println("[MissionList]:开始存储MissionRemindListFinish....");
+		println("[MissionList:saveMission]:开始存储MissionRemindListFinish");
 		for (Map<String, String> map : MissionRemindListFinish)
 		{
 			sql = "update MissionList set " + MissionList.M_STATUS + "=\'" + map.get(MissionList.M_STATUS)
 					+ "\' where M_ID=" + map.get(M_ID);
-			//System.out.println(sql);
+			// println(sql);
+			println("[MissionList:saveMission]:添加" + sql);
 			state.addBatch(sql);
 		}
 		state.executeBatch();
@@ -247,7 +262,7 @@ public class MissionList
 		conn.setAutoCommit(true);
 		JDBCMysqlTools.release(state, conn);
 		// 清空完成任务
-		System.out.println("[MissionList]:清空完成任务列表....");
+		println("[MissionList:saveMission]:清空完成任务列表");
 		MissionCountListOther.clear();
 		MissionRemindListFinish.clear();
 		return true;
@@ -262,17 +277,17 @@ public class MissionList
 	 */
 	public boolean updateMission() throws NumberFormatException, SQLException
 	{
-		System.out.println("[MissionList]:更新任务列表，清空任务列表....");
+		println("[MissionList:updateMission]:更新任务列表，清空任务列表");
 		MissionCountListBefore.clear();
 		MissionCountListOn.clear();
 		MissionCountListOther.clear();
 		MissionRemindListBefore.clear();
 		MissionRemindListFinish.clear();
 		personList.clear();
-		System.out.println("[MissionList]:获取数据....");
+		println("[MissionList:updateMission]:获取数据");
 		getData();
-		System.out.println("[MissionList]:记录时间戳....");
 		timestamp = new Date().getTime();
+		println("[MissionList:updateMission]:记录时间戳:" + timestamp);
 		return true;
 	}
 
@@ -288,10 +303,12 @@ public class MissionList
 	public boolean checkMission(long nowTime) throws NumberFormatException, SQLException
 	{
 		// 未开始任务检查
-		System.out.println("[MissionList]:检查任务....");
+		println("[MissionList:checkMission]:检查未运行任务");
 		ArrayList<Map<String, String>> needRemove = new ArrayList<Map<String, String>>();
 		for (Map<String, String> map : MissionCountListBefore)
 		{
+			println("[MissionList:checkMission]:检查任务" + map.get(M_ID) + "开始时间:"
+					+ new Date(Long.parseLong(map.get(M_START_TIME))));
 			if (Long.parseLong(map.get(M_START_TIME)) <= nowTime)
 			{
 				// 修改状态
@@ -304,16 +321,53 @@ public class MissionList
 				// MissionCountListBefore.remove(map);
 				needRemove.add(map);
 				if (map.get(MissionList.M_TEXT) != null)
-					com.sobte.cqp.jcq.event.JcqApp.CQ.sendGroupMsg(Long.parseLong(map.get(M_GROUPNUM)),
-							com.sobte.cqp.jcq.event.JcqApp.CC.at(-1) + map.get(M_TEXT));
+					println("[MissionList:checkMission]:发送任务开始消息：" + map.get(M_TEXT));
+				com.sobte.cqp.jcq.event.JcqApp.CQ.sendGroupMsg(Long.parseLong(map.get(M_GROUPNUM)),
+						com.sobte.cqp.jcq.event.JcqApp.CC.at(-1) + map.get(M_TEXT));
 			} else
 				break;
 		}
+		println("[MissionList:checkMission]:移除任务MissionCountListBefore");
 		MissionCountListBefore.removeAll(needRemove);
 		needRemove.clear();
 		// 运行中任务检查
+		println("[MissionList:checkMission]:检查运行任务");
 		for (Map<String, String> map : MissionCountListOn)
 		{
+			// 检查是否完成
+			if (personList.get(map.get(M_ID)).isSuccess())
+			{
+				map.put(M_STATUS, "" + M_STATUS_MISSION_SUCCESS);
+				MissionCountListOther.add(map);
+				needRemove.add(map);
+				println("[MissionList:checkMission]:发送提醒：" + map.get(M_TITLE) + "提前完成");
+				com.sobte.cqp.jcq.event.JcqApp.CQ.sendGroupMsg(Long.parseLong(map.get(M_GROUPNUM)),
+						map.get(M_TITLE) + "提前完成");
+			}
+
+			println("[MissionList:checkMission]:检查任务" + map.get(M_ID) + "提醒时间:"
+					+ new Date(Long.parseLong(map.get(M_REMIND_TIME))));
+			// 提醒功能
+			if (map.get("IsRemind") == null && Long.parseLong(map.get(M_REMIND_TIME)) <= nowTime)
+			{
+				Map<Long, Map<String, String>> list = personList.get(map.get(M_ID)).getList();
+				Set<Long> keySet = list.keySet();
+				StringBuffer sb = new StringBuffer();
+				// 获取未完成名单
+				for (Long qq : keySet)
+				{
+					if (list.get(qq).get(PersonList.N_STATUS).equals("" + PersonList.M_STUTAS_PERSON_UNFINISH))
+					{
+						sb.append(com.sobte.cqp.jcq.event.JcqApp.CC.at(qq));
+					}
+				}
+				println("[MissionList:checkMission]:发送提醒：" + sb + map.get(M_TEXT));
+				com.sobte.cqp.jcq.event.JcqApp.CQ.sendGroupMsg(Long.parseLong(map.get(M_GROUPNUM)),
+						sb + map.get(M_TEXT));
+				map.put("IsRemind", "true");
+			}
+			println("[MissionList:checkMission]:检查任务" + map.get(M_ID) + "结束时间:"
+					+ new Date(Long.parseLong(map.get(M_END_TIME))));
 			if (Long.parseLong(map.get(M_END_TIME)) <= nowTime)
 			{
 				// 修改状态
@@ -324,13 +378,17 @@ public class MissionList
 				// 加入完成列表
 				MissionCountListOther.add(map);
 				needRemove.add(map);
+				println("[MissionList:checkMission]:发送提醒：" + map.get(M_TITLE) + "结束");
+				com.sobte.cqp.jcq.event.JcqApp.CQ.sendGroupMsg(Long.parseLong(map.get(M_GROUPNUM)),
+						map.get(M_TITLE) + "结束");
 				// MissionCountListOn.remove(map);
-			} else
-				break;
+			}
 		}
+		println("[MissionList:checkMission]:移除任务MissionCountListOn");
 		MissionCountListOn.removeAll(needRemove);
 		if ((this.timestamp - nowTime) / 60000 >= 5)
 		{
+			println("[MissionList:checkMission]:执行更新列表");
 			this.saveMission();
 			this.updateMission();
 		}

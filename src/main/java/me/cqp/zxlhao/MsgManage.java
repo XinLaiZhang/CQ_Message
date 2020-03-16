@@ -1,5 +1,6 @@
 package me.cqp.zxlhao;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -10,6 +11,10 @@ import java.io.OutputStreamWriter;
 import java.io.Reader;
 import java.io.UnsupportedEncodingException;
 import java.io.Writer;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLConnection;
+import java.net.URLEncoder;
 import java.sql.SQLException;
 import java.util.Date;
 import java.util.Map;
@@ -19,7 +24,6 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
 import com.sobte.cqp.jcq.entity.CQDebug;
 import com.sobte.cqp.jcq.entity.GroupFile;
 import com.sobte.cqp.jcq.entity.ICQVer;
@@ -50,7 +54,7 @@ public class MsgManage extends JcqAppAbstract implements ICQVer, IMsg, IRequest
 	 * 以下就是使用Main方法进行测试的一个简易案例
 	 *
 	 * @param args 系统参数
-	 * @throws InterruptedException 
+	 * @throws InterruptedException
 	 */
 	public static void main(String[] args) throws InterruptedException
 	{
@@ -65,8 +69,8 @@ public class MsgManage extends JcqAppAbstract implements ICQVer, IMsg, IRequest
 		// 开始模拟发送消息
 		// 模拟私聊消息
 		// 开始模拟QQ用户发送消息，以下QQ全部编造，请勿添加
-		//demo.privateMsg(0, 10001, 2234567819L, "小姐姐约吗", 0);
-		//demo.privateMsg(0, 10002, 2222222224L, "喵呜喵呜喵呜", 0);
+		// demo.privateMsg(0, 10001, 2234567819L, "小姐姐约吗", 0);
+		// demo.privateMsg(0, 10002, 2222222224L, "喵呜喵呜喵呜", 0);
 //		demo.privateMsg(0, 10003, 2111111334L, "可以给我你的微信吗", 0);
 //		demo.privateMsg(0, 10004, 3111111114L, "今天天气真好", 0);
 //		demo.privateMsg(0, 10005, 3333333334L, "你好坏，都不理我QAQ", 0);
@@ -77,15 +81,17 @@ public class MsgManage extends JcqAppAbstract implements ICQVer, IMsg, IRequest
 //		demo.groupMsg(0, 10009, 427984429L, 3333333334L, "", "[CQ:at,qq=2222222224] 来一起玩游戏，开车开车", 0);
 //		demo.groupMsg(0, 10010, 427984429L, 3333333334L, "", "好久不见啦 [CQ:at,qq=11111111114]", 0);
 //		demo.groupMsg(0, 10011, 427984429L, 11111111114L, "", "qwq 有没有一起开的\n[CQ:at,qq=3333333334]你玩嘛", 0);
-		
-		//Thread.sleep(5000);
-		demo.groupMsg(0, 10011, 455404395L, 986675982L, "", "张鑫来，完成每日一报", 0);
-		//Thread.sleep(5000);
+
+		// Thread.sleep(5000);
+		demo.groupMsg(0, 10011, 822318296L, 986675982L, "", "已上传每日一报，平安", 0);
+		demo.groupMsg(0, 10011, 808733829L, 986675982L, "", "查 根据《公司法》第16条和第50条的规定，当公司负责人违规对外担保时，该担保合同被判为以下哪一种情况：（）",
+				0);
+		// Thread.sleep(5000);
 		// ......
 		// 依次类推，可以根据实际情况修改参数，和方法测试效果
 		// 以下是收尾触发函数
 		// demo.disable();// 实际过程中程序结束不会触发disable，只有用户关闭了此插件才会触发
-		
+
 		demo.exit();// 最后程序运行结束，调用exit方法
 	}
 
@@ -106,7 +112,7 @@ public class MsgManage extends JcqAppAbstract implements ICQVer, IMsg, IRequest
 		// 文件不存在
 		if (!configFile.exists())
 		{
-			System.out.println("[MsgManage]:正在创建配置文件....");
+			println("[MsgManage:startup]:正在创建配置文件" + configFile + "....");
 			Properties config = new Properties();
 			configFile.getParentFile().mkdirs();
 			// 初始化
@@ -122,14 +128,18 @@ public class MsgManage extends JcqAppAbstract implements ICQVer, IMsg, IRequest
 				outWriter.close();
 			} catch (UnsupportedEncodingException e)
 			{
+				println("[MsgManage:startup]:创建配置文件失败UnsupportedEncodingException");
 				e.printStackTrace();
 			} catch (FileNotFoundException e)
 			{
+				println("[MsgManage:startup]:创建配置文件失败FileNotFoundException");
 				e.printStackTrace();
 			} catch (IOException e)
 			{
+				println("[MsgManage:startup]:创建配置文件失败IOException");
 				e.printStackTrace();
 			}
+			println("[MsgManage:startup]:创建配置文件成功");
 		}
 		return 0;
 	}
@@ -179,6 +189,46 @@ public class MsgManage extends JcqAppAbstract implements ICQVer, IMsg, IRequest
 //          Anonymous anonymous = CQ.getAnonymous(fromAnonymous);
 			return MSG_IGNORE;
 		}
+		println("[MsgManage:groupMsg]:群号："+fromGroup+"QQ："+fromQQ+"消息："+msg);
+		if (fromGroup == 808733829L && msg.indexOf("查") == 0)
+		{
+			println("[MsgManage:groupMsg]:群"+fromGroup+"收到"+fromQQ+"查询指令 "+msg);
+			try
+			{
+				URL url = new URL("http://wk.danran0.cc/api.php?w="+URLEncoder.encode(msg.substring(1).trim(),"utf-8"));
+				URLConnection conn = url.openConnection();
+				conn.setRequestProperty("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9");
+	            conn.setRequestProperty("Accept-Encoding", "deflate");
+	            conn.setRequestProperty("Accept-Language", "zh-CN,zh-TW;q=0.9,zh;q=0.8");
+	            conn.setRequestProperty("Cache-Control", "max-age=0");
+	            conn.setRequestProperty("Connection", "keep-alive");
+	            conn.setRequestProperty("Host", "wk.danran0.cc");
+	            conn.setRequestProperty("Upgrade-Insecure-Requests", "1");
+	            conn.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.132 Safari/537.36");
+	            conn.connect();
+				BufferedReader openStream = new BufferedReader(new InputStreamReader(conn.getInputStream(), "utf-8"));
+				StringBuffer reason = new StringBuffer();
+				String tmp;
+				while((tmp = openStream.readLine()) != null)
+				{
+					reason.append(new String(tmp));
+					reason.append(System.lineSeparator());
+				}
+				openStream.close();
+				println("[MsgManage:groupMsg]:查询结果："+reason);
+				CQ.sendGroupMsg(fromGroup, CC.at(fromQQ) + reason);
+			} catch (MalformedURLException e)
+			{
+				println("[MsgManage:groupMsg]:查询失败MalformedURLException");
+				CQ.sendGroupMsg(fromGroup, CC.at(fromQQ) + "查询失败");
+				e.printStackTrace();
+			} catch (IOException e)
+			{
+				println("[MsgManage:groupMsg]:查询失败IOException");
+				CQ.sendGroupMsg(fromGroup, CC.at(fromQQ) + "查询失败");
+				e.printStackTrace();
+			}
+		}
 //        // 解析CQ码案例 如：[CQ:at,qq=100000]
 //        // 解析CQ码 常用变量为 CC(CQCode) 此变量专为CQ码这种特定格式做了解析和封装
 //        // CC.analysis();// 此方法将CQ码解析为可直接读取的对象
@@ -194,14 +244,17 @@ public class MsgManage extends JcqAppAbstract implements ICQVer, IMsg, IRequest
 		// 判断是否为任务需要
 		for (Map<String, String> map : mission.getMissionCountListOn())
 		{
+			println("[MsgManage:groupMsg]:检查任务["+map.get(MissionList.M_ID)+"]"+map.get(MissionList.M_TITLE));
 			if (map.get(MissionList.M_TYPE).equals(MissionList.M_TYPE_MISSION_GROUP + ""))
 			{
 				Matcher matcher = Pattern.compile(map.get(MissionList.M_REGEX)).matcher(msg);
+				println("[MsgManage:groupMsg]:正则匹配规则："+map.get(MissionList.M_REGEX)+"状态："+matcher.matches());
 				if (matcher.matches())
 				{
 					// 判断是否名单内
 					if (mission.getPersonList().get(map.get(MissionList.M_ID)).getList(fromQQ) != null)
 					{
+						println("[MsgManage:groupMsg]:QQ:"+fromQQ+"存在名单");
 						// 是否需要保存信息
 						if (!map.get(MissionList.M_SAVE_TEXT).equals(""))
 						{
@@ -211,6 +264,7 @@ public class MsgManage extends JcqAppAbstract implements ICQVer, IMsg, IRequest
 							{
 								sb.append(Mycode.deMycode(matcher.group(Integer.parseInt(tmp))) + ",");
 							}
+							println("[MsgManage:groupMsg]:保存:"+sb.substring(0, sb.lastIndexOf(",")));
 							mission.getPersonList().get(map.get(MissionList.M_ID)).getList(fromQQ)
 									.put(PersonList.N_SAVE_TEXT, sb.substring(0, sb.lastIndexOf(",")));
 						}
@@ -221,7 +275,9 @@ public class MsgManage extends JcqAppAbstract implements ICQVer, IMsg, IRequest
 						{
 							String[] reply = map.get(MissionList.M_REPLY).split(",");
 							int randomInt = Math.abs(new Random(new Date().getTime() + (randomseed++)).nextInt());
-							CQ.sendGroupMsg(fromGroup, CC.at(fromQQ) + Mycode.enMycode(reply[randomInt % reply.length]));
+							println("[MsgManage:groupMsg]:回复:"+Mycode.enMycode(reply[randomInt % reply.length]));
+							CQ.sendGroupMsg(fromGroup,
+									CC.at(fromQQ) + Mycode.enMycode(reply[randomInt % reply.length]));
 						}
 					}
 				}
@@ -229,6 +285,14 @@ public class MsgManage extends JcqAppAbstract implements ICQVer, IMsg, IRequest
 		}
 
 		return MSG_IGNORE;
+	}
+
+	/**
+	 * 
+	 */
+	public static void println(String msg)
+	{
+		System.out.println(msg);
 	}
 
 	/**
@@ -435,11 +499,11 @@ public class MsgManage extends JcqAppAbstract implements ICQVer, IMsg, IRequest
 			Reader inStream;
 			try
 			{
-				System.out.println("[MsgManage]:应用启动，开始读取配置文件....");
+				println("[MsgManage:enable]:应用启动，开始读取配置文件....");
 				inStream = new InputStreamReader(new FileInputStream(configFile), "utf-8");
 				config.load(inStream);
 				inStream.close();
-				System.out.println("[MsgManage]:读取配置文件完毕，开始注入数据库管理工具....");
+				println("[MsgManage:enable]:读取配置文件完毕，开始注入数据库管理工具....");
 				JDBCMysqlTools.SetMysql(config.getProperty("driverClass"), config.getProperty("url"),
 						config.getProperty("username"), config.getProperty("password"));
 			} catch (UnsupportedEncodingException e)
@@ -454,7 +518,7 @@ public class MsgManage extends JcqAppAbstract implements ICQVer, IMsg, IRequest
 			}
 			try
 			{
-				System.out.println("[MsgManage]:数据库管理工具注入完毕，开始创建任务列表....");
+				println("[MsgManage:enable]:数据库管理工具注入完毕，开始创建任务列表....");
 				mission = new MissionList();
 			} catch (SQLException e)
 			{
@@ -478,15 +542,17 @@ public class MsgManage extends JcqAppAbstract implements ICQVer, IMsg, IRequest
 						// 检查
 						try
 						{
-							System.out.println("[MsgManage]:启用应用，开始检测任务状态");
+							println("[MsgManage:enable:run]:时钟任务，开始检测任务状态");
 							mission.checkMission(nowTime);
 						} catch (NumberFormatException | SQLException e)
 						{
 							e.printStackTrace();
 						}
 						// 检查提醒任务
+						println("[MsgManage:enable:run]:检查提醒任务");
 						for (Map<String, String> map : mission.getMissionRemindListBefore())
 						{
+							println("[MsgManage:enable:run]:检查任务"+map.get(MissionList.M_ID)+"开始时间:"+new Date(Long.parseLong(map.get(MissionList.M_START_TIME))));
 							if (Long.parseLong(map.get(MissionList.M_START_TIME)) <= nowTime)
 							{
 								// 判断是否循环提醒
@@ -563,9 +629,11 @@ public class MsgManage extends JcqAppAbstract implements ICQVer, IMsg, IRequest
 	{
 		if (timer != null)
 		{
+			println("[MsgManage:exit]:退出，结束时钟线程");
 			timer.cancel();
 			try
 			{
+				println("[MsgManage:exit]:退出，保存任务列表");
 				mission.saveMission();
 			} catch (SQLException e)
 			{

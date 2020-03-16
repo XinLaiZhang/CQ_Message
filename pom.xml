@@ -5,7 +5,7 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<groupId>me.cqp.zxlhao</groupId>
-	<artifactId>demo</artifactId>
+	<artifactId>CQ_Message</artifactId>
 	<version>1.0-SNAPSHOT</version>
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -41,7 +41,7 @@
 
 	<build>
 		<!-- 此处填写打包后的jar文件名 -->
-		<finalName>${groupId}.${artifactId}</finalName>
+		<finalName>${groupId}.demo</finalName>
 
 		<!-- 将依赖包输出到 target\lib 中, 将lib目录复制到插件 同名文件夹下 即可导入依赖 -->
 		<plugins>

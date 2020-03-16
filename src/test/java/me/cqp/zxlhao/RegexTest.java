@@ -1,7 +1,7 @@
 package me.cqp.zxlhao;
 
-
-
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 
 import org.junit.jupiter.api.Test;
 
@@ -31,18 +31,19 @@ public class RegexTest
 //		
 //	}
 	@Test
-	public void test2()
+	public void test2() throws UnsupportedEncodingException
 	{
-//		System.out.println(new Date().getTime());
-//		System.out.println(new Date().getTime()+1*60*60*1000);
-//		System.out.println(new Date().getTime()+24*60*60*1000);
 		
+		//String encode = URLEncoder.encode("查《诗人之死》出自俄国天才诗人__________之笔","utf-8");
+		//String msg = "查 中国特色社会主义制度";
+		//System.out.println(encode);
+		//System.out.println(msg.substring(1).trim());
 	}
 	
 	@Test
 	public void test1() throws InterruptedException
 	{
 		//System.out.println("执行完成");
-		//MsgManage.main(new String[0]);
+		MsgManage.main(new String[0]);
 	}
 }

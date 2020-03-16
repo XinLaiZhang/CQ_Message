@@ -37,14 +37,14 @@ public class PersonList
 	public PersonList(String ListName) throws SQLException
 	{
 		super();
-
+		println("[PersonList]初始化名单列表:"+ListName);
 		this.ListName = ListName;
 
 		Connection conn = JDBCMysqlTools.getConnection();
 
 		Statement state = conn.createStatement();
 		String sql = "select * from " + ListName;
-
+		println("[PersonList]执行:"+sql);
 		ResultSet resultSet = state.executeQuery(sql);
 		while (resultSet.next())
 		{
@@ -56,6 +56,7 @@ public class PersonList
 			String tmp = resultSet.getString(N_SAVE_TEXT).trim();
 			tmp = tmp.equals("[]") ? "" : tmp.substring(1, tmp.length() - 1);
 			map.put(N_SAVE_TEXT, tmp);
+			println("[PersonList]"+map+"被添加");
 			List.put(Long.parseLong(map.get(N_QQ)), map);
 		}
 
@@ -68,11 +69,13 @@ public class PersonList
 
 	public Map<Long, Map<String, String>> getList()
 	{
+		println("[PersonList:getList]获取List");
 		return List;
 	}
 
 	public Map<String, String> getList(long qq)
 	{
+		println("[PersonList:getList]获取List从qq:"+qq);
 		return List.get(qq);
 	}
 
@@ -83,7 +86,7 @@ public class PersonList
 	 */
 	public boolean saveList()
 	{
-
+		println("[PersonList:saveList]:开始存储名单");
 		String sql;
 		Connection conn = JDBCMysqlTools.getConnection();
 		try
@@ -92,18 +95,22 @@ public class PersonList
 			conn.setAutoCommit(false);
 			Statement state = conn.createStatement();
 			Set<Long> keySet = this.List.keySet();
+			
 			for (long qq : keySet)
 			{
 				Map<String, String> map = this.List.get(qq);
 				sql = "update " + this.ListName + " set "+N_STATUS+"=\'" + map.get(N_STATUS) + "\',"+N_SAVE_TEXT+"=\'["
 						+ map.get(N_SAVE_TEXT) + "]\' where N_ID=" + map.get(N_ID);
+				println("[PersonList:saveList]添加"+sql);
 				state.addBatch(sql);
 			}
+			println("[PersonList:saveList]:执行存储");
 			state.executeBatch();
 			conn.commit();
 			JDBCMysqlTools.release(state, conn);
 		} catch (SQLException e)
 		{
+			println("[PersonList:saveList]存储列表失败");
 			e.printStackTrace();
 			return false;
 		}
@@ -118,6 +125,7 @@ public class PersonList
 	 */
 	public boolean saveList(Statement state)
 	{
+		println("[PersonList:saveList]:开始存储名单-state");
 		String sql;
 		Set<Long> keySet = this.List.keySet();
 		try
@@ -127,10 +135,12 @@ public class PersonList
 				Map<String, String> map = this.List.get(qq);
 				sql = "update " + this.ListName + " set "+N_STATUS+"=\'" + map.get(N_STATUS) + "\',"+N_SAVE_TEXT+"=\'["
 						+ map.get(N_SAVE_TEXT) + "]\' where N_ID=" + map.get(N_ID);
+				println("[PersonList:saveList]添加"+sql);
 				state.addBatch(sql);
 			}
 		} catch (SQLException e)
 		{
+			println("[PersonList:saveList]存储列表失败-state");
 			e.printStackTrace();
 			return false;
 		}
@@ -144,13 +154,19 @@ public class PersonList
 	 */
 	public boolean isSuccess()
 	{
+		println("[PersonList:isSuccess]:判断任务是否完成");
 		for (long qq : this.List.keySet())
 		{
+			println("[PersonList:isSuccess]:任务未完成");
 			Map<String, String> map = this.List.get(qq);
 			if (Byte.parseByte(map.get(N_STATUS)) != M_STUTAS_PERSON_FINISH)
 				return false;
 		}
+		println("[PersonList:isSuccess]:任务完成");
 		return true;
 	}
-
+	private void println(String msg)
+	{
+		MsgManage.println(msg);
+	}
 }
